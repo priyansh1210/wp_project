@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- Open Book Logo - Dark version for light backgrounds -->
+
+  <!-- Back cover / shadow -->
+  <path d="M100,135 Q60,130 5,145 Q8,100 15,70 Q20,50 35,42 Q60,30 100,55
+           Q140,30 165,42 Q180,50 185,70 Q192,100 195,145 Q140,130 100,135 Z" fill="#111"/>
+
+  <!-- Bottom page fan lines -->
+  <path d="M100,130 Q65,125 15,140" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M100,125 Q68,120 22,133" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M100,130 Q135,125 185,140" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M100,125 Q132,120 178,133" fill="none" stroke="#333" stroke-width="1.5"/>
+
+  <!-- Left page -->
+  <path d="M100,120 Q100,80 100,45 Q70,28 30,40 Q22,44 20,60 L18,120 Q55,108 100,120 Z"
+        fill="white" stroke="#111" stroke-width="3"/>
+  <!-- Right page -->
+  <path d="M100,120 Q100,80 100,45 Q130,28 170,40 Q178,44 180,60 L182,120 Q145,108 100,120 Z"
+        fill="white" stroke="#111" stroke-width="3"/>
+
+  <!-- Spine -->
+  <path d="M98,45 Q100,42 102,45" fill="none" stroke="#111" stroke-width="2.5"/>
+</svg>

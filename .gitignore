@@ -1,0 +1,42 @@
+# Compiled Java classes
+*.class
+
+# Compiled JSP files (Tomcat work directory)
+tools/apache-tomcat-10.1.52/work/
+
+# Tomcat logs
+tools/apache-tomcat-10.1.52/logs/
+
+# Tomcat temp
+tools/apache-tomcat-10.1.52/temp/
+
+# JDK binary
+tools/jdk-21.0.10+7/
+
+# MySQL binary
+tools/mysql-8.4.4-winx64/
+
+# ZIP archives
+*.zip
+
+# Tomcat core (everything except webapps/LibraryPortal)
+tools/apache-tomcat-10.1.52/bin/
+tools/apache-tomcat-10.1.52/lib/
+tools/apache-tomcat-10.1.52/conf/
+tools/apache-tomcat-10.1.52/webapps/ROOT/
+tools/apache-tomcat-10.1.52/webapps/docs/
+tools/apache-tomcat-10.1.52/webapps/examples/
+tools/apache-tomcat-10.1.52/webapps/host-manager/
+tools/apache-tomcat-10.1.52/webapps/manager/
+tools/apache-tomcat-10.1.52/BUILDING.txt
+tools/apache-tomcat-10.1.52/CONTRIBUTING.md
+tools/apache-tomcat-10.1.52/LICENSE
+tools/apache-tomcat-10.1.52/NOTICE
+tools/apache-tomcat-10.1.52/README.md
+tools/apache-tomcat-10.1.52/RELEASE-NOTES
+tools/apache-tomcat-10.1.52/RUNNING.txt
+
+# MySQL connector at root level (duplicate)
+mysql-connector-j.jar
+tools/mysql-connector-j.jar
+.claude/
