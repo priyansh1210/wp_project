@@ -53,9 +53,6 @@
                 <div class="page-header">
                     <h1>User Management</h1>
                     <div class="page-header-actions">
-                        <button class="btn-add" onclick="openModal('addUserModal')">
-                            <span class="icon"><img src="img/icon-add.svg" alt="Add" style="width:14px;height:14px;vertical-align:middle;filter:invert(1)"></span> Add User
-                        </button>
                     </div>
                 </div>
 
@@ -210,29 +207,6 @@
     </div>
 </div>
 
-<!-- Add User Modal -->
-<div class="modal-overlay" id="addUserModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2><span class="modal-icon"><img src="img/icon-users.svg" alt="Users" style="width:20px;height:20px;vertical-align:middle"></span> Add User</h2>
-            <button class="modal-close">&times;</button>
-        </div>
-        <form action="AddMemberServlet" method="post">
-            <div class="modal-body">
-                <div class="form-group"><input type="text" name="name" placeholder="Name" required></div>
-                <div class="form-group"><input type="email" name="email" placeholder="Email" required></div>
-                <div class="form-row">
-                    <div class="form-group"><input type="text" name="username" placeholder="Username" required></div>
-                    <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel">CANCEL</button>
-                <button type="submit" class="btn-confirm">ADD</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 
 <!-- Edit Member Modal (email & contact only) -->
