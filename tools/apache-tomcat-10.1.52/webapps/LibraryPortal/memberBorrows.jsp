@@ -62,27 +62,49 @@
                         <tbody>
                         <%
                             ResultSet rsCurrent = st.executeQuery(
-                                "SELECT bh.id, COALESCE(b.title, '[Removed Book]') AS title, bh.borrow_date, bh.due_date, bh.status, " +
+                                "SELECT bh.id, COALESCE(b.title, '[Removed Book]') AS title, bh.borrow_date, bh.due_date, bh.status, bh.reject_message, " +
                                 "(bh.due_date IS NOT NULL AND bh.due_date < NOW()) AS is_overdue " +
                                 "FROM borrow_history bh LEFT JOIN books b ON bh.book_id = b.id " +
-                                "WHERE bh.member_id = " + memberId + " AND bh.status = 'BORROWED' " +
+                                "WHERE bh.member_id = " + memberId + " AND bh.status IN ('BORROWED','RETURN_PENDING','REJECTED') " +
                                 "ORDER BY bh.borrow_date DESC");
                             boolean hasCurrent = false;
                             while (rsCurrent.next()) {
                                 hasCurrent = true;
                                 boolean overdue = rsCurrent.getBoolean("is_overdue");
+                                String cStatus = rsCurrent.getString("status");
+                                String rejectMsg = rsCurrent.getString("reject_message");
                         %>
                             <tr>
                                 <td><%= rsCurrent.getInt("id") %></td>
                                 <td><%= rsCurrent.getString("title") %></td>
                                 <td><%= rsCurrent.getTimestamp("borrow_date") %></td>
                                 <td><%= rsCurrent.getTimestamp("due_date") != null ? rsCurrent.getTimestamp("due_date") : "-" %></td>
-                                <td><span class="<%= overdue ? "status-overdue" : "status-borrowed" %>"><%= overdue ? "Overdue" : "Borrowed" %></span></td>
                                 <td>
-                                    <form action="ReturnBookServlet" method="post" style="display:inline">
-                                        <input type="hidden" name="borrowId" value="<%= rsCurrent.getInt("id") %>">
-                                        <button type="submit" class="btn-add" style="padding:6px 16px;font-size:12px">Return</button>
-                                    </form>
+                                    <% if ("RETURN_PENDING".equals(cStatus)) { %>
+                                        <span class="status-pending">Return Requested</span>
+                                    <% } else if ("REJECTED".equals(cStatus)) { %>
+                                        <span class="status-overdue">Return Rejected</span>
+                                    <% } else if (overdue) { %>
+                                        <span class="status-overdue">Overdue</span>
+                                    <% } else { %>
+                                        <span class="status-borrowed">Borrowed</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if ("RETURN_PENDING".equals(cStatus)) { %>
+                                        <button class="btn-add" style="padding:6px 16px;font-size:12px;opacity:0.5" disabled>Return Requested</button>
+                                    <% } else if ("REJECTED".equals(cStatus)) { %>
+                                        <div style="font-size:11px;color:#b00;margin-bottom:4px" title="<%= rejectMsg %>"><strong>Rejected:</strong> <%= rejectMsg %></div>
+                                        <form action="ReturnBookServlet" method="post" style="display:inline">
+                                            <input type="hidden" name="borrowId" value="<%= rsCurrent.getInt("id") %>">
+                                            <button type="submit" class="btn-add" style="padding:6px 16px;font-size:12px">Request Again</button>
+                                        </form>
+                                    <% } else { %>
+                                        <form action="ReturnBookServlet" method="post" style="display:inline">
+                                            <input type="hidden" name="borrowId" value="<%= rsCurrent.getInt("id") %>">
+                                            <button type="submit" class="btn-add" style="padding:6px 16px;font-size:12px">Return</button>
+                                        </form>
+                                    <% } %>
                                 </td>
                             </tr>
                         <% }
@@ -122,8 +144,12 @@
                                 hasHist = true;
                                 String status = rsHist.getString("status");
                                 boolean overdue = rsHist.getBoolean("is_overdue");
-                                String label = overdue ? "Overdue" : status;
-                                String cls = overdue ? "status-overdue" : ("BORROWED".equals(status) ? "status-borrowed" : "status-available");
+                                String label, cls;
+                                if ("RETURN_PENDING".equals(status)) { label = "Return Requested"; cls = "status-pending"; }
+                                else if ("REJECTED".equals(status)) { label = "Return Rejected"; cls = "status-overdue"; }
+                                else if (overdue) { label = "Overdue"; cls = "status-overdue"; }
+                                else if ("BORROWED".equals(status)) { label = "Borrowed"; cls = "status-borrowed"; }
+                                else { label = "Returned"; cls = "status-available"; }
                         %>
                             <tr>
                                 <td><%= rsHist.getInt("id") %></td>

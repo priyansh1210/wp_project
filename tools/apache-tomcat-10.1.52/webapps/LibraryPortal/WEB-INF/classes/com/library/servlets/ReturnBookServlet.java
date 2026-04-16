@@ -27,39 +27,30 @@ public class ReturnBookServlet extends HttpServlet {
         int borrowId = Integer.parseInt(borrowIdStr);
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Get the book_id from borrow record
+            // Verify the borrow record belongs to this member and is currently BORROWED or REJECTED
             PreparedStatement getPs = conn.prepareStatement(
-                "SELECT book_id FROM borrow_history WHERE id=? AND status='BORROWED'"
+                "SELECT book_id FROM borrow_history WHERE id=? AND member_id=? AND status IN ('BORROWED','REJECTED')"
             );
             getPs.setInt(1, borrowId);
+            getPs.setInt(2, (int) session.getAttribute("memberId"));
             ResultSet rs = getPs.executeQuery();
 
             if (rs.next()) {
-                int bookId = rs.getInt("book_id");
-
-                // Update borrow record
+                // Set status to RETURN_PENDING, clear any previous reject message
                 PreparedStatement updateBorrow = conn.prepareStatement(
-                    "UPDATE borrow_history SET status='RETURNED', return_date=NOW() WHERE id=?"
+                    "UPDATE borrow_history SET status='RETURN_PENDING', reject_message=NULL WHERE id=?"
                 );
                 updateBorrow.setInt(1, borrowId);
                 updateBorrow.executeUpdate();
                 updateBorrow.close();
 
-                // Increase available count
-                PreparedStatement updateBook = conn.prepareStatement(
-                    "UPDATE books SET available = available + 1 WHERE id=?"
-                );
-                updateBook.setInt(1, bookId);
-                updateBook.executeUpdate();
-                updateBook.close();
-
-                response.sendRedirect("memberBorrows.jsp?msg=Book returned successfully!");
+                response.sendRedirect("memberBorrows.jsp?msg=Return request submitted! Waiting for admin approval.");
             } else {
                 response.sendRedirect("memberBorrows.jsp?msg=Invalid borrow record");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("memberBorrows.jsp?msg=Return failed: " + e.getMessage());
+            response.sendRedirect("memberBorrows.jsp?msg=Return request failed: " + e.getMessage());
         }
     }
 }

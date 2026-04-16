@@ -862,6 +862,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   font-weight: 700;
 }
 
+.data-table .status-pending {
+  color: #e67e00;
+  font-weight: 600;
+}
+
 /* Action Buttons in Table */
 .action-btns {
   display: flex;

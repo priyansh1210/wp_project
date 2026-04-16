@@ -68,4 +68,21 @@ CREATE TABLE IF NOT EXISTS branches (
 INSERT IGNORE INTO branches (name, contact_no, location) VALUES
 ('The Archive Co. - Main', '0412410984', 'Bengaluru');
 
+-- ============================================
+-- 4. Update borrow_history for return approval flow
+-- ============================================
+ALTER TABLE borrow_history MODIFY COLUMN status ENUM('BORROWED','RETURN_PENDING','RETURNED','REJECTED') DEFAULT 'BORROWED';
+
+-- Add reject_message column if not exists
+DELIMITER //
+CREATE PROCEDURE IF NOT EXISTS safe_alter_borrow()
+BEGIN
+    IF NOT EXISTS (SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='library_portal' AND TABLE_NAME='borrow_history' AND COLUMN_NAME='reject_message') THEN
+        ALTER TABLE borrow_history ADD COLUMN reject_message VARCHAR(255) DEFAULT NULL;
+    END IF;
+END //
+DELIMITER ;
+CALL safe_alter_borrow();
+DROP PROCEDURE IF EXISTS safe_alter_borrow;
+
 SELECT 'Schema update completed successfully!' AS result;
