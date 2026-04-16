@@ -30,6 +30,10 @@ BEGIN
     IF NOT EXISTS (SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='library_portal' AND TABLE_NAME='members' AND COLUMN_NAME='username') THEN
         ALTER TABLE members ADD COLUMN username VARCHAR(50) UNIQUE AFTER name;
     END IF;
+    -- members: contact_no
+    IF NOT EXISTS (SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='library_portal' AND TABLE_NAME='members' AND COLUMN_NAME='contact_no') THEN
+        ALTER TABLE members ADD COLUMN contact_no VARCHAR(20) AFTER email;
+    END IF;
     -- books: language
     IF NOT EXISTS (SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='library_portal' AND TABLE_NAME='books' AND COLUMN_NAME='language') THEN
         ALTER TABLE books ADD COLUMN language VARCHAR(50) DEFAULT 'English' AFTER genre;

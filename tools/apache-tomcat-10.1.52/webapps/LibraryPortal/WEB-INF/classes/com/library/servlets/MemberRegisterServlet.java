@@ -67,14 +67,15 @@ public class MemberRegisterServlet extends HttpServlet {
             }
 
             PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO members (name, username, email, password, profile_image, image_type) VALUES (?,?,?,?,?,?)"
+                "INSERT INTO members (name, username, email, contact_no, password, profile_image, image_type) VALUES (?,?,?,?,?,?,?)"
             );
             ps.setString(1, name);
             ps.setString(2, username.trim());
             ps.setString(3, email.trim());
-            ps.setString(4, password);
-            ps.setBytes(5, photoBytes);
-            ps.setString(6, mimeType);
+            ps.setString(4, contactNo != null && !contactNo.trim().isEmpty() ? contactNo.trim() : null);
+            ps.setString(5, password);
+            ps.setBytes(6, photoBytes);
+            ps.setString(7, mimeType);
             ps.executeUpdate();
             ps.close();
             response.sendRedirect("login.jsp?role=member&success=Registration successful! Your virtual ID is ready. Please login.");
