@@ -35,7 +35,7 @@
         <% } %>
 
         <!-- Member Register Form -->
-        <form id="memberForm" class="auth-form" action="MemberRegisterServlet" method="post" onsubmit="return validatePhoto()">
+        <form id="memberForm" class="auth-form" action="MemberRegisterServlet" method="post" enctype="multipart/form-data" onsubmit="return validatePhoto()">
             <div class="form-row">
                 <div class="form-group"><input type="text" name="firstName" placeholder="First Name" required></div>
                 <div class="form-group"><input type="text" name="lastName" placeholder="Last Name" required></div>
@@ -49,23 +49,20 @@
                 <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
             </div>
 
-            <!-- Face capture -->
+            <!-- Profile Picture Upload -->
             <div class="form-group" style="margin-top:8px">
-                <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px">Capture Face Photo (required for virtual ID)</label>
-                <div id="cameraBox" style="border:1px solid #ccc;border-radius:6px;padding:10px;background:#fafafa">
-                    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-                        <video id="camVideo" autoplay playsinline muted style="width:180px;height:135px;background:#000;border-radius:4px;display:block"></video>
-                        <canvas id="camCanvas" width="320" height="240" style="display:none"></canvas>
-                        <img id="camPreview" alt="Preview" style="width:135px;height:135px;object-fit:cover;border:1px dashed #aaa;border-radius:4px;display:none;background:#eee">
+                <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px">Upload Profile Picture (required for virtual ID)</label>
+                <div id="uploadBox" style="border:1px solid #ccc;border-radius:6px;padding:16px;background:#fafafa">
+                    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+                        <img id="photoPreview" alt="Preview" style="width:120px;height:120px;object-fit:cover;border:2px dashed #aaa;border-radius:6px;display:none;background:#eee">
+                        <div id="photoPlaceholder" style="width:120px;height:120px;border:2px dashed #aaa;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#eee;color:#999;font-size:12px;text-align:center;padding:8px">No photo<br>selected</div>
                         <div style="flex:1;min-width:180px">
-                            <div id="camStatus" style="font-size:12px;color:#666;margin-bottom:8px">Camera inactive</div>
-                            <button type="button" id="camStartBtn" class="btn-borrow" style="width:100%;padding:6px;margin-bottom:6px">Start Camera</button>
-                            <button type="button" id="camCaptureBtn" class="btn-borrow" style="width:100%;padding:6px;margin-bottom:6px" disabled>Capture</button>
-                            <button type="button" id="camRetakeBtn" class="btn-borrow" style="width:100%;padding:6px;display:none">Retake</button>
+                            <div id="photoStatus" style="font-size:12px;color:#666;margin-bottom:8px">Please upload a profile picture</div>
+                            <input type="file" name="profilePhoto" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp" required style="display:none">
+                            <button type="button" class="btn-borrow" style="width:100%;padding:8px;font-size:13px" onclick="document.getElementById('profilePhotoInput').click()">Choose Photo</button>
                         </div>
                     </div>
                 </div>
-                <input type="hidden" name="photo" id="photoInput">
             </div>
 
             <button type="submit" class="btn-primary" id="submitBtn" disabled>SIGN UP</button>
@@ -75,67 +72,53 @@
 
 <script src="js/main.js"></script>
 <script>
-var stream = null;
-var video = document.getElementById('camVideo');
-var canvas = document.getElementById('camCanvas');
-var preview = document.getElementById('camPreview');
-var statusEl = document.getElementById('camStatus');
-var startBtn = document.getElementById('camStartBtn');
-var captureBtn = document.getElementById('camCaptureBtn');
-var retakeBtn = document.getElementById('camRetakeBtn');
-var photoInput = document.getElementById('photoInput');
+var fileInput = document.getElementById('profilePhotoInput');
+var preview = document.getElementById('photoPreview');
+var placeholder = document.getElementById('photoPlaceholder');
+var statusEl = document.getElementById('photoStatus');
 var submitBtn = document.getElementById('submitBtn');
 
-startBtn.addEventListener('click', async function() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        statusEl.textContent = 'Camera not supported by this browser.';
-        statusEl.style.color = '#b00';
+fileInput.addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) {
+        preview.style.display = 'none';
+        placeholder.style.display = 'flex';
+        submitBtn.disabled = true;
+        statusEl.textContent = 'Please upload a profile picture';
+        statusEl.style.color = '#666';
         return;
     }
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
-        video.srcObject = stream;
-        statusEl.textContent = 'Camera active. Frame your face and Capture.';
-        statusEl.style.color = '#080';
-        captureBtn.disabled = false;
-        startBtn.disabled = true;
-    } catch (err) {
-        statusEl.textContent = 'Permission denied or camera unavailable: ' + err.message;
-        statusEl.style.color = '#b00';
+
+    // Validate file type
+    var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (validTypes.indexOf(file.type) === -1) {
+        alert('Please upload a JPG, PNG, or WEBP image.');
+        this.value = '';
+        return;
     }
-});
 
-captureBtn.addEventListener('click', function() {
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    photoInput.value = dataUrl;
-    preview.src = dataUrl;
-    preview.style.display = 'block';
-    video.style.display = 'none';
-    captureBtn.style.display = 'none';
-    retakeBtn.style.display = 'block';
-    submitBtn.disabled = false;
-    statusEl.textContent = 'Photo captured. You can Retake or Sign Up.';
-    statusEl.style.color = '#080';
-    if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
-});
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be less than 5MB.');
+        this.value = '';
+        return;
+    }
 
-retakeBtn.addEventListener('click', function() {
-    preview.style.display = 'none';
-    video.style.display = 'block';
-    captureBtn.style.display = 'block';
-    retakeBtn.style.display = 'none';
-    photoInput.value = '';
-    submitBtn.disabled = true;
-    startBtn.disabled = false;
-    statusEl.textContent = 'Click Start Camera to retake.';
-    statusEl.style.color = '#666';
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+        submitBtn.disabled = false;
+        statusEl.textContent = file.name + ' selected';
+        statusEl.style.color = '#080';
+    };
+    reader.readAsDataURL(file);
 });
 
 function validatePhoto() {
-    if (!photoInput.value) {
-        alert('Please capture a face photo before signing up.');
+    if (!fileInput.files || !fileInput.files[0]) {
+        alert('Please upload a profile picture before signing up.');
         return false;
     }
     return true;

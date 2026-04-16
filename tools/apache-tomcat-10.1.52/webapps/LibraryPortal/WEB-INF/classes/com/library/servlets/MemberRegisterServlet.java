@@ -5,9 +5,9 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import java.io.*;
 import java.sql.*;
-import java.util.Base64;
 
 @WebServlet("/MemberRegisterServlet")
+@MultipartConfig(maxFileSize = 5 * 1024 * 1024, maxRequestSize = 10 * 1024 * 1024)
 public class MemberRegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -21,7 +21,6 @@ public class MemberRegisterServlet extends HttpServlet {
         String email = request.getParameter("email");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        String photo = request.getParameter("photo");
 
         String name = (firstName != null ? firstName.trim() : "") + " " + (lastName != null ? lastName.trim() : "");
         name = name.trim();
@@ -33,25 +32,26 @@ public class MemberRegisterServlet extends HttpServlet {
             return;
         }
 
-        if (photo == null || !photo.startsWith("data:image/")) {
-            response.sendRedirect("register.jsp?role=member&error=Face photo is required for virtual ID");
+        // Handle file upload
+        Part photoPart = request.getPart("profilePhoto");
+        if (photoPart == null || photoPart.getSize() == 0) {
+            response.sendRedirect("register.jsp?role=member&error=Profile picture is required for virtual ID");
             return;
         }
 
-        String mimeType;
+        String mimeType = photoPart.getContentType();
+        if (mimeType == null || !mimeType.startsWith("image/")) {
+            response.sendRedirect("register.jsp?role=member&error=Please upload a valid image file (JPG, PNG, or WEBP)");
+            return;
+        }
+
         byte[] photoBytes;
-        try {
-            int comma = photo.indexOf(",");
-            String meta = photo.substring(5, photo.indexOf(";"));
-            mimeType = meta;
-            String b64 = photo.substring(comma + 1);
-            photoBytes = Base64.getDecoder().decode(b64);
-            if (photoBytes.length < 500) {
-                response.sendRedirect("register.jsp?role=member&error=Captured photo is too small or invalid");
-                return;
-            }
-        } catch (Exception ex) {
-            response.sendRedirect("register.jsp?role=member&error=Invalid photo data");
+        try (InputStream is = photoPart.getInputStream()) {
+            photoBytes = is.readAllBytes();
+        }
+
+        if (photoBytes.length < 500) {
+            response.sendRedirect("register.jsp?role=member&error=Uploaded image is too small or invalid");
             return;
         }
 

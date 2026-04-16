@@ -1,0 +1,64 @@
+Option 1: Using Command Prompt (CMD)
+
+  Start MySQL:
+
+  D:\WP_project\tools\mysql-8.4.4-winx64\bin\mysqld.exe --basedir=D:\WP_project\tools\mysql-8.4.4-winx64
+  --datadir=D:\WP_project\tools\mysql-8.4.4-winx64\data --console
+
+  Start Tomcat (in a new CMD window):
+
+  set JAVA_HOME=D:\WP_project\tools\jdk-21.0.10+7
+  set CATALINA_HOME=D:\WP_project\tools\apache-tomcat-10.1.52
+  %CATALINA_HOME%\bin\startup.bat
+
+  Access the Application:
+
+  http://localhost:8080/LibraryPortal
+
+  ---
+  Option 2: Using Git Bash (Recommended - what I used)
+
+  Start MySQL (in background):
+
+  /d/WP_project/tools/mysql-8.4.4-winx64/bin/mysqld.exe --basedir=/d/WP_project/tools/mysql-8.4.4-winx64
+  --datadir=/d/WP_project/tools/mysql-8.4.4-winx64/data --console &
+
+  Start Tomcat (in the same or new Git Bash window):
+
+  export JAVA_HOME="/d/WP_project/tools/jdk-21.0.10+7"
+  export CATALINA_HOME="/d/WP_project/tools/apache-tomcat-10.1.52"
+  "$CATALINA_HOME/bin/catalina.sh" start
+
+  Access the Application:
+
+  http://localhost:8080/LibraryPortal
+
+  ---
+  Stop Servers
+
+  Stop Tomcat (CMD):
+
+  D:\WP_project\tools\apache-tomcat-10.1.52\bin\shutdown.bat
+
+  Stop Tomcat (Git Bash):
+
+  "$CATALINA_HOME/bin/catalina.sh" stop
+
+  Stop MySQL:
+
+  taskkill /PID 11180 /F
+  (Replace 11180 with the actual MySQL process ID)
+
+  ---
+  Quick Reference - Copy & Paste
+
+  MySQL (Git Bash):
+  /d/WP_project/tools/mysql-8.4.4-winx64/bin/mysqld.exe --basedir=/d/WP_project/tools/mysql-8.4.4-winx64
+  --datadir=/d/WP_project/tools/mysql-8.4.4-winx64/data --console &
+
+  Tomcat (Git Bash):
+  export JAVA_HOME="/d/WP_project/tools/jdk-21.0.10+7" && export
+  CATALINA_HOME="/d/WP_project/tools/apache-tomcat-10.1.52" && "$CATALINA_HOME/bin/catalina.sh" start
+
+  App URL:
+  http://localhost:8080/LibraryPortal

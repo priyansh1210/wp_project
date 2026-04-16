@@ -10,6 +10,17 @@
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
         conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/library_portal", "root", "");
+        // Fetch distinct book types for filters
+        Statement stTypes = conn.createStatement();
+        ResultSet rsTypes = stTypes.executeQuery("SELECT DISTINCT genre FROM books ORDER BY genre");
+        List<String> bookTypes = new ArrayList<>();
+        while (rsTypes.next()) {
+            String g = rsTypes.getString("genre");
+            if (g != null && !g.isEmpty()) bookTypes.add(g);
+        }
+        rsTypes.close();
+        stTypes.close();
+
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM books ORDER BY id");
 %>
@@ -44,6 +55,14 @@
                         <input type="text" class="search-input" data-table="booksTable" placeholder="Search by ID or Type">
                     </div>
                 </div>
+            </div>
+
+            <!-- Type Filters -->
+            <div class="tab-buttons" style="margin-bottom:16px;flex-wrap:wrap">
+                <button class="tab-btn active" onclick="filterBooksByType(this, 'All')">All</button>
+                <% for (String bType : bookTypes) { %>
+                    <button class="tab-btn" onclick="filterBooksByType(this, '<%= bType.replace("'","\\'") %>')"><%= bType %></button>
+                <% } %>
             </div>
 
             <div class="data-table-wrapper">
@@ -227,6 +246,29 @@
 </div>
 
 <script src="js/main.js"></script>
+<script>
+function filterBooksByType(btn, type) {
+    // Update active button
+    var buttons = btn.parentElement.querySelectorAll('.tab-btn');
+    buttons.forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    // Filter table rows
+    var rows = document.querySelectorAll('#booksTable tbody tr');
+    rows.forEach(function(row) {
+        if (type === 'All') {
+            row.style.display = '';
+        } else {
+            var typeCell = row.querySelectorAll('td')[2]; // Type is the 3rd column
+            if (typeCell && typeCell.textContent.trim() === type) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+</script>
 </body>
 </html>
 <%

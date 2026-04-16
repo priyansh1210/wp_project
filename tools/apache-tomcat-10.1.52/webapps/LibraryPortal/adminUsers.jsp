@@ -12,7 +12,7 @@
         conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/library_portal", "root", "");
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery(
-            "SELECT m.id, m.name, m.email, m.username, " +
+            "SELECT m.id, m.name, m.email, m.username, m.profile_image, m.image_type, m.created_at, " +
             "(SELECT COUNT(*) FROM borrow_history bh WHERE bh.member_id=m.id AND bh.status='BORROWED') AS active_borrows " +
             "FROM members m ORDER BY m.id");
 %>
@@ -78,6 +78,14 @@
                             String uemail = rs.getString("email");
                             String uusername = rs.getString("username") != null ? rs.getString("username") : uemail;
                             int activeBorrows = rs.getInt("active_borrows");
+                            String uJoined = rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : "N/A";
+                            String uPhotoDataUrl = "";
+                            byte[] uImg = rs.getBytes("profile_image");
+                            String uMime = rs.getString("image_type");
+                            if (uImg != null && uImg.length > 0) {
+                                if (uMime == null || uMime.isEmpty()) uMime = "image/jpeg";
+                                uPhotoDataUrl = "data:" + uMime + ";base64," + java.util.Base64.getEncoder().encodeToString(uImg);
+                            }
                         %>
                             <tr>
                                 <td><%= uid %></td>
@@ -87,7 +95,6 @@
                                 <td><%= activeBorrows %></td>
                                 <td>
                                     <div class="action-btns">
-                                        <button class="action-btn edit-btn" onclick="populateEditForm('editUserModal', {id:'<%= uid %>', name:'<%= uname.replace("'","\\'") %>', email:'<%= uemail.replace("'","\\'") %>', username:'<%= uusername.replace("'","\\'") %>'})" title="Edit"><img src="img/icon-edit.svg" alt="Edit" style="width:14px;height:14px"></button>
                                         <% if (activeBorrows > 0) { %>
                                         <button class="action-btn delete-btn" onclick="alert('Cannot delete: member has <%= activeBorrows %> book(s) not yet returned.')" title="Cannot delete - active borrows"><img src="img/icon-delete.svg" alt="Delete" style="width:14px;height:14px;opacity:0.4"></button>
                                         <% } else { %>
@@ -106,18 +113,38 @@
                                         <button class="modal-close">&times;</button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class="view-meta">
-                                            <div class="view-details">
-                                                <div class="detail-row"><span class="detail-label">User ID :</span><span class="detail-value"><%= uid %></span></div>
-                                                <div class="detail-row"><span class="detail-label">Name :</span><span class="detail-value"><%= uname %></span></div>
-                                                <div class="detail-row"><span class="detail-label">Email :</span><span class="detail-value"><%= uemail %></span></div>
-                                                <div class="detail-row"><span class="detail-label">Username :</span><span class="detail-value"><%= uusername %></span></div>
-                                                <div class="detail-row"><span class="detail-label">Active Borrows :</span><span class="detail-value"><%= activeBorrows %></span></div>
+                                        <!-- Virtual ID Card -->
+                                        <div style="max-width:420px;margin:0 auto;background:linear-gradient(135deg,#111 0%,#333 100%);color:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px">
+                                                <div style="font-size:11px;letter-spacing:2px;opacity:0.7">THE ARCHIVE CO.</div>
+                                                <div style="font-size:11px;letter-spacing:1px;opacity:0.7">MEMBER ID</div>
                                             </div>
-                                            <div class="view-saved-by">
-                                                Saved by :<br>
-                                                <strong><%= session.getAttribute("adminName") %></strong>
-                                                (Admin)
+                                            <div style="display:flex;gap:16px;align-items:center">
+                                                <div style="width:90px;height:110px;border-radius:6px;overflow:hidden;background:#555;flex-shrink:0;border:2px solid rgba(255,255,255,0.3)">
+                                                    <% if (!uPhotoDataUrl.isEmpty()) { %>
+                                                        <img src="<%= uPhotoDataUrl %>" alt="Photo" style="width:100%;height:100%;object-fit:cover">
+                                                    <% } else { %>
+                                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff"><%= uname.length() > 0 ? uname.substring(0,1).toUpperCase() : "?" %></div>
+                                                    <% } %>
+                                                </div>
+                                                <div style="flex:1;min-width:0">
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">NAME</div>
+                                                    <div style="font-size:16px;font-weight:600;margin-bottom:8px;word-break:break-word"><%= uname %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">USER ID</div>
+                                                    <div style="font-size:14px;font-weight:500;margin-bottom:8px">#<%= String.format("%06d", uid) %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">REGISTERED</div>
+                                                    <div style="font-size:12px;font-weight:500"><%= uJoined %></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Member Details -->
+                                        <div style="margin-top:16px">
+                                            <div class="view-meta">
+                                                <div class="view-details">
+                                                    <div class="detail-row"><span class="detail-label">Email :</span><span class="detail-value"><%= uemail %></span></div>
+                                                    <div class="detail-row"><span class="detail-label">Username :</span><span class="detail-value"><%= uusername %></span></div>
+                                                    <div class="detail-row"><span class="detail-label">Active Borrows :</span><span class="detail-value"><%= activeBorrows %></span></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -204,30 +231,6 @@
     </div>
 </div>
 
-<!-- Edit User Modal -->
-<div class="modal-overlay" id="editUserModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2><span class="modal-icon"><img src="img/icon-users.svg" alt="Users" style="width:20px;height:20px;vertical-align:middle"></span> Update User</h2>
-            <button class="modal-close">&times;</button>
-        </div>
-        <form action="UpdateMemberServlet" method="post">
-            <input type="hidden" name="id">
-            <div class="modal-body">
-                <div class="form-group"><input type="text" name="name" placeholder="Name" required></div>
-                <div class="form-group"><input type="email" name="email" placeholder="Email" required></div>
-                <div class="form-row">
-                    <div class="form-group"><input type="text" name="username" placeholder="Username"></div>
-                    <div class="form-group"><input type="password" name="password" placeholder="Password"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel">CANCEL</button>
-                <button type="submit" class="btn-confirm">UPDATE</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- Delete Member Modal (with reason) -->
 <div class="modal-overlay delete-modal" id="deleteMemberModal">
