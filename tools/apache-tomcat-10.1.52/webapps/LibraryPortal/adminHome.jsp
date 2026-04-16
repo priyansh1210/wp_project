@@ -370,7 +370,7 @@
                 &copy; <%= java.time.Year.now().getValue() %> The Archive Co. Library Portal. All rights reserved.
             </div>
             <div class="footer-right">
-                Built for WP Lab Project &mdash; MIT Bengaluru
+                Built for WP Lab Project &mdash; Harshika Bansal
             </div>
         </div>
     </footer>
