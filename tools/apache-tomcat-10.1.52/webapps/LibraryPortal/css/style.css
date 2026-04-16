@@ -439,6 +439,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   flex: 1;
   background: var(--white);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
 }
 
 /* --- Top Bar --- */
@@ -1462,6 +1468,66 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .hidden { display: none !important; }
 .flex { display: flex; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+.site-footer {
+  background: var(--black);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 20px 32px;
+  margin-top: auto;
+  font-size: 12px;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-logo {
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+}
+
+.footer-brand {
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 1px;
+  font-size: 12px;
+}
+
+.footer-center {
+  text-align: center;
+  flex: 1;
+}
+
+.footer-right {
+  text-align: right;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-right {
+    text-align: center;
+  }
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; }

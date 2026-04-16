@@ -236,9 +236,19 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="footer">
-        <p class="footer-quote">"So many books, so little time." - Frank Zappa</p>
-        <p>&copy; 2025 The Archive Co. Library Portal | MIT Bengaluru</p>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <img src="img/logo.svg" alt="The Archive Co." class="footer-logo">
+                <span class="footer-brand">The Archive Co.</span>
+            </div>
+            <div class="footer-center">
+                &copy; <%= java.time.Year.now().getValue() %> The Archive Co. Library Portal. All rights reserved.
+            </div>
+            <div class="footer-right">
+                Built for WP Lab Project &mdash; MIT Bengaluru
+            </div>
+        </div>
     </footer>
 
     <script src="js/main.js"></script>
