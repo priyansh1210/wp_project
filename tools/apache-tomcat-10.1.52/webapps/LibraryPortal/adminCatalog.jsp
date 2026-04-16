@@ -125,10 +125,12 @@
                         </thead>
                         <tbody>
                         <%
-                            ResultSet rs = st.executeQuery(
+                            Statement stB = conn.createStatement();
+                            ResultSet rs = stB.executeQuery(
                                 "SELECT bh.id, bh.member_id, COALESCE(b.title, '[Removed Book]') AS title, bh.borrow_date, bh.due_date, bh.status, " +
+                                "m.name AS mname, m.profile_image, m.image_type, m.created_at AS m_joined, " +
                                 "(bh.due_date IS NOT NULL AND bh.due_date < NOW()) AS is_overdue " +
-                                "FROM borrow_history bh LEFT JOIN books b ON bh.book_id = b.id " +
+                                "FROM borrow_history bh LEFT JOIN books b ON bh.book_id = b.id LEFT JOIN members m ON bh.member_id = m.id " +
                                 "WHERE bh.status IN ('BORROWED','RETURN_PENDING','REJECTED') ORDER BY bh.borrow_date DESC");
                             while (rs.next()) {
                                 boolean overdue = rs.getBoolean("is_overdue");
@@ -138,20 +140,68 @@
                                 else if ("REJECTED".equals(bStatus)) { bLabel = "Return Rejected"; bCls = "status-overdue"; }
                                 else if (overdue) { bLabel = "Overdue"; bCls = "status-overdue"; }
                                 else { bLabel = "Borrowed"; bCls = "status-borrowed"; }
+                                int bMid = rs.getInt("member_id");
+                                String bMname = rs.getString("mname") != null ? rs.getString("mname") : "Unknown";
+                                String bMJoined = rs.getTimestamp("m_joined") != null ? rs.getTimestamp("m_joined").toString() : "N/A";
+                                String bMPhoto = "";
+                                byte[] bMImg = rs.getBytes("profile_image");
+                                String bMMime = rs.getString("image_type");
+                                if (bMImg != null && bMImg.length > 0) {
+                                    if (bMMime == null || bMMime.isEmpty()) bMMime = "image/jpeg";
+                                    bMPhoto = "data:" + bMMime + ";base64," + java.util.Base64.getEncoder().encodeToString(bMImg);
+                                }
+                                int bBorrowId = rs.getInt("id");
                         %>
                             <tr>
-                                <td><%= rs.getInt("id") %></td>
-                                <td><%= rs.getInt("member_id") %></td>
+                                <td><%= bBorrowId %></td>
+                                <td><%= bMid %></td>
                                 <td><%= rs.getString("title") %></td>
                                 <td><%= rs.getTimestamp("borrow_date") %></td>
                                 <td><%= rs.getTimestamp("due_date") != null ? rs.getTimestamp("due_date") : "-" %></td>
                                 <td><span class="<%= bCls %>"><%= bLabel %></span></td>
                                 <td>
                                     <div class="action-btns">
-                                        <button class="action-btn view-btn" onclick="openModal('borrowViewModal-<%= rs.getInt("id") %>')" title="View"><img src="img/icon-view.svg" alt="View" style="width:14px;height:14px"></button>
+                                        <button class="action-btn view-btn" onclick="openModal('borrowViewModal-<%= bBorrowId %>')" title="View"><img src="img/icon-view.svg" alt="View" style="width:14px;height:14px"></button>
                                     </div>
                                 </td>
                             </tr>
+                            <!-- Virtual ID Card Modal -->
+                            <div class="modal-overlay" id="borrowViewModal-<%= bBorrowId %>">
+                                <div class="modal">
+                                    <div class="modal-header">
+                                        <h2><span class="modal-icon"><img src="img/icon-users.svg" alt="User" style="width:20px;height:20px;vertical-align:middle"></span> Member Virtual ID</h2>
+                                        <button class="modal-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div style="max-width:420px;margin:0 auto;background:linear-gradient(135deg,#111 0%,#333 100%);color:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px">
+                                                <div style="font-size:11px;letter-spacing:2px;opacity:0.7">THE ARCHIVE CO.</div>
+                                                <div style="font-size:11px;letter-spacing:1px;opacity:0.7">MEMBER ID</div>
+                                            </div>
+                                            <div style="display:flex;gap:16px;align-items:center">
+                                                <div style="width:90px;height:110px;border-radius:6px;overflow:hidden;background:#555;flex-shrink:0;border:2px solid rgba(255,255,255,0.3)">
+                                                    <% if (!bMPhoto.isEmpty()) { %>
+                                                        <img src="<%= bMPhoto %>" alt="Photo" style="width:100%;height:100%;object-fit:cover">
+                                                    <% } else { %>
+                                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff"><%= bMname.length() > 0 ? bMname.substring(0,1).toUpperCase() : "?" %></div>
+                                                    <% } %>
+                                                </div>
+                                                <div style="flex:1;min-width:0">
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">NAME</div>
+                                                    <div style="font-size:16px;font-weight:600;margin-bottom:8px;word-break:break-word"><%= bMname %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">USER ID</div>
+                                                    <div style="font-size:14px;font-weight:500;margin-bottom:8px">#<%= String.format("%06d", bMid) %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">REGISTERED</div>
+                                                    <div style="font-size:12px;font-weight:500"><%= bMJoined %></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn-confirm" onclick="closeModal('borrowViewModal-<%= bBorrowId %>')">CLOSE</button>
+                                    </div>
+                                </div>
+                            </div>
                         <% } %>
                         </tbody>
                     </table>
@@ -177,25 +227,74 @@
                         <%
                             Statement stO = conn.createStatement();
                             ResultSet rsO = stO.executeQuery(
-                                "SELECT bh.id, bh.member_id, COALESCE(b.title, '[Removed Book]') AS title, bh.borrow_date, bh.due_date, bh.status " +
-                                "FROM borrow_history bh LEFT JOIN books b ON bh.book_id = b.id " +
+                                "SELECT bh.id, bh.member_id, COALESCE(b.title, '[Removed Book]') AS title, bh.borrow_date, bh.due_date, bh.status, " +
+                                "m.name AS mname, m.profile_image, m.image_type, m.created_at AS m_joined " +
+                                "FROM borrow_history bh LEFT JOIN books b ON bh.book_id = b.id LEFT JOIN members m ON bh.member_id = m.id " +
                                 "WHERE bh.status IN ('BORROWED','RETURN_PENDING','REJECTED') AND bh.due_date IS NOT NULL AND bh.due_date < NOW() " +
                                 "ORDER BY bh.due_date");
                             while (rsO.next()) {
+                                int oMid = rsO.getInt("member_id");
+                                String oMname = rsO.getString("mname") != null ? rsO.getString("mname") : "Unknown";
+                                String oMJoined = rsO.getTimestamp("m_joined") != null ? rsO.getTimestamp("m_joined").toString() : "N/A";
+                                String oMPhoto = "";
+                                byte[] oMImg = rsO.getBytes("profile_image");
+                                String oMMime = rsO.getString("image_type");
+                                if (oMImg != null && oMImg.length > 0) {
+                                    if (oMMime == null || oMMime.isEmpty()) oMMime = "image/jpeg";
+                                    oMPhoto = "data:" + oMMime + ";base64," + java.util.Base64.getEncoder().encodeToString(oMImg);
+                                }
+                                int oBorrowId = rsO.getInt("id");
                         %>
                             <tr>
-                                <td><%= rsO.getInt("id") %></td>
-                                <td><%= rsO.getInt("member_id") %></td>
+                                <td><%= oBorrowId %></td>
+                                <td><%= oMid %></td>
                                 <td><%= rsO.getString("title") %></td>
                                 <td><%= rsO.getTimestamp("borrow_date") %></td>
                                 <td><%= rsO.getTimestamp("due_date") != null ? rsO.getTimestamp("due_date") : "-" %></td>
                                 <td><span class="status-overdue">Overdue</span></td>
                                 <td>
                                     <div class="action-btns">
-                                        <button class="action-btn view-btn" title="View"><img src="img/icon-view.svg" alt="View" style="width:14px;height:14px"></button>
+                                        <button class="action-btn view-btn" onclick="openModal('overdueViewModal-<%= oBorrowId %>')" title="View"><img src="img/icon-view.svg" alt="View" style="width:14px;height:14px"></button>
                                     </div>
                                 </td>
                             </tr>
+                            <!-- Virtual ID Card Modal -->
+                            <div class="modal-overlay" id="overdueViewModal-<%= oBorrowId %>">
+                                <div class="modal">
+                                    <div class="modal-header">
+                                        <h2><span class="modal-icon"><img src="img/icon-users.svg" alt="User" style="width:20px;height:20px;vertical-align:middle"></span> Member Virtual ID</h2>
+                                        <button class="modal-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div style="max-width:420px;margin:0 auto;background:linear-gradient(135deg,#111 0%,#333 100%);color:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px">
+                                                <div style="font-size:11px;letter-spacing:2px;opacity:0.7">THE ARCHIVE CO.</div>
+                                                <div style="font-size:11px;letter-spacing:1px;opacity:0.7">MEMBER ID</div>
+                                            </div>
+                                            <div style="display:flex;gap:16px;align-items:center">
+                                                <div style="width:90px;height:110px;border-radius:6px;overflow:hidden;background:#555;flex-shrink:0;border:2px solid rgba(255,255,255,0.3)">
+                                                    <% if (!oMPhoto.isEmpty()) { %>
+                                                        <img src="<%= oMPhoto %>" alt="Photo" style="width:100%;height:100%;object-fit:cover">
+                                                    <% } else { %>
+                                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff"><%= oMname.length() > 0 ? oMname.substring(0,1).toUpperCase() : "?" %></div>
+                                                    <% } %>
+                                                </div>
+                                                <div style="flex:1;min-width:0">
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">NAME</div>
+                                                    <div style="font-size:16px;font-weight:600;margin-bottom:8px;word-break:break-word"><%= oMname %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">USER ID</div>
+                                                    <div style="font-size:14px;font-weight:500;margin-bottom:8px">#<%= String.format("%06d", oMid) %></div>
+                                                    <div style="font-size:11px;opacity:0.6;letter-spacing:1px">REGISTERED</div>
+                                                    <div style="font-size:12px;font-weight:500"><%= oMJoined %></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn-confirm" onclick="closeModal('overdueViewModal-<%= oBorrowId %>')">CLOSE</button>
+                                    </div>
+                                </div>
+                            </div>
                         <% } %>
                         </tbody>
                     </table>
