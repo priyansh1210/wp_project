@@ -106,7 +106,9 @@
                                 "FROM borrow_history bh JOIN members m ON bh.member_id = m.id LEFT JOIN books b ON bh.book_id = b.id " +
                                 "WHERE bh.status IN ('BORROWED','RETURN_PENDING','REJECTED') AND bh.due_date IS NOT NULL AND bh.due_date < NOW() " +
                                 "ORDER BY bh.due_date LIMIT 5");
+                            boolean hasOverdue = false;
                             while (rsOverdue.next()) {
+                                hasOverdue = true;
                                 int odBid = rsOverdue.getInt("id");
                                 String odName = rsOverdue.getString("name");
                                 String odBook = rsOverdue.getString("book_title");
@@ -150,6 +152,9 @@
                                 </div>
                             </div>
                         </div>
+                        <% }
+                            if (!hasOverdue) { %>
+                        <div style="text-align:center;padding:30px;color:#999;font-size:13px">No overdue borrowers</div>
                         <% } %>
                     </div>
                 </div>
